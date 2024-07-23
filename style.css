@@ -1,59 +1,50 @@
-body,html
-{
-    margin: 0px;
-    color: #000000;
-    font-size: 1.3rem;
-    font-family: Roobert,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+body {
+  font: 14px "Century Gothic", Futura, sans-serif;
+  margin: 20px;
 }
 
-.center
-{
+ol, ul {
+  padding-left: 30px;
+}
+
+.board-row:after {
+  clear: both;
+  content: "";
+  display: table;
+}
+
+.status {
+  margin-bottom: 10px;
+}
+
+.square {
+  background: #fff;
+  border: 1px solid #999;
+  float: left;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 34px;
+  height: 34px;
+  margin-right: -1px;
+  margin-top: -1px;
+  padding: 0;
   text-align: center;
+  width: 34px;
 }
 
-/* Game Board */
-#tic-tac-toe-board {
-  display: block;
-  margin: auto;
-  margin-top: 20px;
-}
-
-/* Button Style */
-.button {
-  appearance: none;
-  background-color: #000000;
-  border: 2px solid #1A1A1A;
-  box-sizing: border-box;
-  color: #FFFFFF;
-  cursor: pointer;
-  display: inline-block;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: normal;
-  margin: 5px;
-  min-height: 60px;
-  min-width: 0;
+.square:focus {
   outline: none;
-  padding: 0px 24px;
-  text-align: center;
-  text-decoration: none;
-  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  will-change: transform;
 }
 
-.button:disabled {
-  pointer-events: none;
+.kbd-navigation .square:focus {
+  background: #ddd;
 }
 
-.button:hover {
-  box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
-  transform: translateY(-2px);
+.game {
+  display: flex;
+  flex-direction: row;
 }
 
-.button:active {
-  box-shadow: none;
-  transform: translateY(0);
+.game-info {
+  margin-left: 20px;
 }

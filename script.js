@@ -1,178 +1,145 @@
-var count = 0;
-var player = 1;
-var board = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
-
-var canvas = document.getElementById("tic-tac-toe-board");
-var context = canvas.getContext('2d');
-var canvasSize = 500;
-var sectionSize = canvasSize / 3;
-canvas.width = canvasSize;
-canvas.height = canvasSize;
-context.translate(0.5, 0.5);
-context.lineWidth = 10;
-
-/* Event Func */
-function main() {
-  document.getElementById("main").style.display = "block";
-  document.getElementById("learn").style.display = "none";
-  document.getElementById("game").style.display = "none";
-}
-
-/* Event Func */
-function start() {
-  document.getElementById("main").style.display = "none";
-  document.getElementById("learn").style.display = "none";
-  document.getElementById("game").style.display = "block";
-
-  canvas.addEventListener('mouseup', function (event) {
-    addPlayingPiece(getCanvasMousePosition(event));
-    drawBoard();
-    setTimeout(() => {
-      if(!checkWhoWin(1) && !checkWhoWin(2)){
-        checkIsOver();
-      }
-    }, 100);
-  });
-  drawBoard();
-}
-
-/* Event Func */
-function learn() {
-  document.getElementById("main").style.display = "none";
-  document.getElementById("learn").style.display = "block";
-  document.getElementById("game").style.display = "none";
-}
-
-/* Event Func */
-function exit() {
-  window.close();
-}
-
-function addPlayingPiece(mouse) {
-  var xCordinate;
-  var yCordinate;
-  for (var x = 0; x < 3; x++) {
-    for (var y = 0; y < 3; y++) {
-      xCordinate = x * sectionSize;
-      yCordinate = y * sectionSize;
-      if (
-        mouse.x >= xCordinate && mouse.x <= xCordinate + sectionSize &&
-        mouse.y >= yCordinate && mouse.y <= yCordinate + sectionSize && board[y][x] == 0
-      ) {
-        board[y][x] = player;
-        player = player == 1 ? 2 : 1;
-        count++;
-      }
-    }
-  }
-}
-
-function getCanvasMousePosition(event) {
-  var rect = canvas.getBoundingClientRect();
-  return {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top
-  }
-}
-
-function clearPlayingArea(xCordinate, yCordinate) {
-  context.fillStyle = "#fff";
-  context.fillRect(
-    xCordinate,
-    yCordinate,
-    sectionSize,
-    sectionSize
+function Square(props) {
+  return (
+    <button className="square" onClick={props.onClick}>
+      {props.value}
+    </button>
   );
 }
 
-function drawO(xCordinate, yCordinate) {
-  var halfSectionSize = (0.5 * sectionSize);
-  var centerX = xCordinate + halfSectionSize;
-  var centerY = yCordinate + halfSectionSize;
-  var radius = (sectionSize - 100) / 2;
-  var startAngle = 0 * Math.PI;
-  var endAngle = 2 * Math.PI;
-  context.beginPath();
-  context.arc(centerX, centerY, radius, startAngle, endAngle);
-  context.stroke();
+class Board extends React.Component {
+  renderSquare(i) {
+    return (
+      <Square
+        value={this.props.squares[i]}
+        onClick={() => this.props.onClick(i)}
+      />
+    );
+  }
+
+  render() {
+    return (
+      <div>
+        <div className="board-row">
+          {this.renderSquare(0)}
+          {this.renderSquare(1)}
+          {this.renderSquare(2)}
+        </div>
+        <div className="board-row">
+          {this.renderSquare(3)}
+          {this.renderSquare(4)}
+          {this.renderSquare(5)}
+        </div>
+        <div className="board-row">
+          {this.renderSquare(6)}
+          {this.renderSquare(7)}
+          {this.renderSquare(8)}
+        </div>
+      </div>
+    );
+  }
 }
 
-function drawX(xCordinate, yCordinate) {
-  context.beginPath();
-  var offset = 50;
-  context.moveTo(xCordinate + offset, yCordinate + offset);
-  context.lineTo(xCordinate + sectionSize - offset, yCordinate + sectionSize - offset);
-  context.moveTo(xCordinate + offset, yCordinate + sectionSize - offset);
-  context.lineTo(xCordinate + sectionSize - offset, yCordinate + offset);
-  context.stroke();
-}
-
-function drawBoard() {
-  //Updating the Command
-  document.querySelector("#textPlayer").textContent = "(Current Player: " + player + " )";
-  document.querySelector("#textComd").textContent = "(Player " + (count % 2 + 1) + " can play now... )";
-
-  var xCordinate;
-  var yCordinate;
-  for (var x = 0; x < 3; x++) {
-    for (var y = 0; y < 3; y++) {
-      xCordinate = x * sectionSize;
-      yCordinate = y * sectionSize;
-      //Clearing First then Drawing 
-      clearPlayingArea(xCordinate, yCordinate);
-      if (board[y][x] === 1) {
-        drawX(xCordinate, yCordinate);
-      }
-      else if (board[y][x] === 2) {
+class Game extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      history: [
         {
-          drawO(xCordinate, yCordinate);
+          squares: Array(9).fill(null)
         }
-      }
+      ],
+      stepNumber: 0,
+      xIsNext: true
+    };
+  }
+
+  handleClick(i) {
+    const history = this.state.history.slice(0, this.state.stepNumber + 1);
+    const current = history[history.length - 1];
+    const squares = current.squares.slice();
+    if (calculateWinner(squares) || squares[i]) {
+      return;
+    }
+    squares[i] = this.state.xIsNext ? "X" : "O";
+    this.setState({
+      history: history.concat([
+        {
+          squares: squares
+        }
+      ]),
+      stepNumber: history.length,
+      xIsNext: !this.state.xIsNext
+    });
+  }
+
+  jumpTo(step) {
+    this.setState({
+      stepNumber: step,
+      xIsNext: (step % 2) === 0
+    });
+  }
+
+  render() {
+    const history = this.state.history;
+    const current = history[this.state.stepNumber];
+    const winner = calculateWinner(current.squares);
+
+    const moves = history.map((step, move) => {
+      const desc = move ?
+        'Go to move #' + move :
+        'Go to game start';
+      return (
+        <li key={move}>
+          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+        </li>
+      );
+    });
+
+    let status;
+    if (winner) {
+      status = "Winner: " + winner;
+    } else {
+      status = "Next player: " + (this.state.xIsNext ? "X" : "O");
+    }
+
+    return (
+      <div className="game">
+        <div className="game-board">
+          <Board
+            squares={current.squares}
+            onClick={i => this.handleClick(i)}
+          />
+        </div>
+        <div className="game-info">
+          <div>{status}</div>
+          <ol>{moves}</ol>
+        </div>
+      </div>
+    );
+  }
+}
+
+// ========================================
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<Game />);
+
+function calculateWinner(squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
     }
   }
-
-  //DRAW LINES of Boards
-  var lineStart = 4;
-  var lineLenght = canvasSize - 5;
-  context.beginPath();
-  for (var y = 1; y <= 2; y++) {
-    context.moveTo(lineStart, y * sectionSize);
-    context.lineTo(lineLenght, y * sectionSize);
-  }
-  for (var x = 1; x <= 2; x++) {
-    context.moveTo(x * sectionSize, lineStart);
-    context.lineTo(x * sectionSize, lineLenght);
-  }
-  context.stroke();
+  return null;
 }
-
-
-function checkWhoWin(number) {
-  //check win   number will be 1 or 2
-  // 1 for player is ONE
-  // 2 for player is TWO
-  let isWin = false;
-  for (let i = 0; i < 3; i++) {
-    if ((board[i][0] === number && board[i][1] === number && board[i][2] === number) || (board[0][i] === number && board[1][i] === number && board[2][i] === number)) {
-      isWin = true;
-      alert("Player " + number + " win the Game");
-      window.location.reload();
-    }
-  }
-  if ((board[0][0] === number && board[1][1] === number && board[2][2] === number) || (board[0][2] === number && board[1][1] === number && board[2][0] === number)) {
-    isWin = true;
-    alert("Player " + number + " win the Game");
-    window.location.reload();
-  }
-  return isWin;
-}
-
-function checkIsOver() {
-  //IF BOTH ARE NOT WIN AND NO NEXT MOVE
-  if (count >= 9) {
-    alert("Game is Over!!!");
-    window.location.reload();
-  }
-}
-
-window.onload = main(); //CALL ON LOAD
